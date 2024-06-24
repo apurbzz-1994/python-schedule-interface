@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduler Interface</title>
+
+     <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row mt-3">
+            <div class="col-12 col-md-4 col-lg-4 p-3 bg-light border m-2 sticky-top" style="max-height: 850px;">
+                <h4>Scheduler Interface</h4>
+                <p style="margin-bottom:2em;"><small>Version 1.0.0</small></p>
+                <!--Set of options for modules selection-->
+                <div style="margin-top:1em;" id="module-selection">
+                    <!--content here would get dynamically generated-->
+                </div>
+                <!--Set of options for module function selection-->
+                <div style="margin-top:1em;" id="function-selection">
+                    <p>Please select a <b>Function</b> that you would like to schedule:</p>
+                    <select class = "form-control" name="functions" id="functions">
+                        <option value="no">No function selected</option>
+                    </select>
+                </div>
+                <!--option for defining a schedule for previously selected function-->
+                <div style="margin-top:1em;" id="schedule-selection">
+                    <p>Please select a <b>Schedule time</b>:</p>
+                    <p>"<i>I want to schedule <b>no function</b> to run every <input type="number" min="1" class="form-control form-control-sm mb-2 mr-2 w-25" style = "display: inline;" id="schedule-time" disabled>
+                     <select class = "form-control form-control-sm mb-2 mr-2 w-50" name="schedule-type" style = "display: inline;" id="schedule-type" disabled><option value="sec">second(s)</option><option value="min">minute(s)</option></select>"
+                    </i> 
+                    </p>
+                </div>
+                <!--submit button-->
+                <div style="margin-top:1em;">
+                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 1em;" onclick="addTaskOnButtonPress()">Add Schedule Task</button>
+                </div>
+
+                <!--button group for play and stop buttons-->
+                <div style="margin-top:1em; text-align: center;">
+                     <!--play button-->
+                    <button type="button" class="btn btn-primary btn-success" style="margin-top: 1em;" onclick="triggerScheduleTasks()">Play</button>
+                    <!--stop button-->
+                    <button type="button" class="btn btn-primary btn-danger" style="margin-top: 1em;" onclick="triggerTaskHalt()">Stop</button>
+                </div>
+            </div>
+            <!--main information display-->
+            <div class="col-12 col-md-7 col-lg-7 mt-2">
+                <div id="main-display">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<!--stuff for bootstrap-->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+<!--The eel.js script tag is important for it to work with main.py-->
+<script type="text/javascript" src="/eel.js"></script>
+<script type="text/javascript">
+    //js stuff goes here
+    
+    
+    function loadModuleNames(data){
+        let moduleSelectionDiv = document.getElementById('module-selection');
+        jsonData = JSON.parse(data);
+        allModules = jsonData.modules;
+
+        allHtml = '<p>Please select a <b>Module</b>:</p><select class = "form-control" name="modules" id="modules"><option value="no">No module selected</option>';
+
+        for(let eachModule of allModules){
+            allHtml += `<option value="${eachModule}">${eachModule}</option>`;
+        }
+
+        allHtml += '</select>';
+
+        moduleSelectionDiv.innerHTML = allHtml;
+        moduleDropDown = document.getElementById('modules');
+        moduleDropDown.addEventListener('change', sendModuleNameOnModuleSelection);
+    }
+
+
+    function updateScheduleOptions(){
+        let scheduleSelectionDiv = document.getElementById('schedule-selection');
+        let selectedFunction = document.getElementById('functions').value;
+
+        if(selectedFunction != "no"){
+            allHtml = `<p>Please select a <b>Schedule time</b>:</p><p>"<i>I want to schedule <b>${selectedFunction}()</b>`;
+            allHtml += ` to run every <input type="number" min="1" class="form-control form-control-sm mb-2 mr-2 w-25" style = "display: inline;" id="schedule-time"><select class = "form-control form-control-sm mb-2 mr-2 w-50" name="schedule-type" style = "display: inline;" id="schedule-type"><option value="sec">second(s)</option><option value="min">minute(s)</option></select>"</i>`;
+            scheduleSelectionDiv.innerHTML = allHtml;
+        }
+        else{
+            allHtml = `<p>Please select a <b>Schedule time</b>:</p><p>"<i>I want to schedule <b>no functions</b>`;
+            allHtml += ` to run every <input type="number" min="1" class="form-control form-control-sm mb-2 mr-2 w-25" style = "display: inline;" id="schedule-time" disabled><select class = "form-control form-control-sm mb-2 mr-2 w-50" name="schedule-type" style = "display: inline;" id="schedule-type" disabled><option value="sec">second(s)</option><option value="min">minute(s)</option></select>"</i>`;
+            scheduleSelectionDiv.innerHTML = allHtml;
+        }
+
+    }
+
+
+    function loadModuleFunctions(data){
+        let functionSelectionDiv = document.getElementById('function-selection');
+        allHtml = '<p>Please select a <b>Function</b> that you would like to schedule:</p><select class = "form-control" name="functions" id="functions">';
+        if(data == 'no-select'){
+            allHtml += '<option value="no">No functions selected</option>';
+        }
+        else{
+            jsonData = JSON.parse(data);
+            allFunctions = jsonData.functions;
+
+            allHtml += '<option value="no">No functions selected</option>';
+        
+            for(let eachFunction of allFunctions){
+                allHtml += `<option value="${eachFunction}">${eachFunction}</option>`;
+            }
+        }
+
+        allHtml += '</select>';    
+        functionSelectionDiv.innerHTML = allHtml;
+        //calling the function for that first refresh
+        updateScheduleOptions();
+        functionDropDown = document.getElementById('functions');
+        functionDropDown.addEventListener('change', updateScheduleOptions);
+    }
+
+    function sendModuleNameOnModuleSelection(){
+        let modulesDropdown = document.getElementById('modules');
+        let selectedModule = modulesDropdown.value;
+
+        //call to python function to send back module functions data for rendering
+        if(selectedModule != "no"){
+            eel.send_functions_list(selectedModule)(loadModuleFunctions);
+        }
+        else{
+            loadModuleFunctions('no-select');
+        }
+    }
+
+    function renderAddedTasks(data){
+        allTasks = JSON.parse(data);
+        taskDisplay = document.getElementById('main-display');
+
+        allHtml = '';
+
+
+        for(let eachTask of allTasks){
+            taskCard = `<div class="card">
+                        <div class="card-header">
+                          Task ID: ${eachTask['id']}
+                        </div>
+                        <div class="card-body">
+                          <h5 class="card-title">Module: ${eachTask['module']}</h5>
+                          <p class="card-text">Schedule function <b>${eachTask['function']}()</b> to run every <b>${eachTask['set-time']} ${eachTask['set-type']}</b></p>
+                        </div>
+                    </div>`;   
+            allHtml += taskCard;
+        }
+
+        taskDisplay.innerHTML = allHtml;
+
+    }
+
+
+    function addTaskOnButtonPress(){
+        //need to make a map of data to be sent over to python
+        //schedule-time and schedule-type
+        selectedModule = document.getElementById('modules').value;
+        selectedFunction = document.getElementById('functions').value;
+        setTime = document.getElementById('schedule-time').value;
+        setType = document.getElementById('schedule-type').value;
+
+        let task = {
+            'module': selectedModule,
+            'function': selectedFunction,
+            'set-time': setTime,
+            'set-type': setType
+        };
+
+        //send over to python for scheduling
+        eel.add_to_task_list(JSON.stringify(task))(renderAddedTasks);    
+
+    }
+
+    function triggerScheduleTasks(){
+        //call python function that does these
+        eel.trigger_schedule_tasks();
+
+    }
+
+    function triggerTaskHalt(){
+        eel.trigger_task_halt();
+
+    }
+
+    //js stuff to do as soon as the whole DOM loads
+    document.addEventListener("DOMContentLoaded", function(event){
+        eel.send_module_list()(loadModuleNames);
+    });
+
+    
+
+</script>
+
+</html>
