@@ -7,6 +7,7 @@ import secrets
 import schedule
 import time
 from datetime import datetime
+import threading
 eel.init("web")
 
 
@@ -26,8 +27,9 @@ imported_modules = {}
 #list of added tasks
 all_tasks = []
 
-#flag to play/stop scheduler 
-scheduler_running = True
+#define a stop event
+stop_event = threading.Event()
+scheduler_thread = None
 
 def get_module_names():
     script_dir = './'
@@ -143,33 +145,49 @@ def define_scheduler(task):
         schedule.every(int(task['set-time'])).minutes.do(task_function)
 
 
+'''
+function to run scheduler with a thread event
+'''
+def run_schedule(stop_event):
+    next_run_time = None
+    while not stop_event.is_set():
+        schedule.run_pending()
+        next_run = schedule.next_run()
+        if next_run and next_run != next_run_time:
+            next_run_time = next_run
+            print(f"Next scheduled job will run at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+        time.sleep(1)
+
+
 
 '''
 Use the scheduler library to schedule all tasks in the all_tasks list
 '''
 @eel.expose
 def trigger_schedule_tasks():
+
+    #set the thread event to false initially
+    global stop_event
+    if stop_event.is_set():
+        stop_event.clear()
+
     #scheduling everything here
     for each_task in all_tasks:
         define_scheduler(each_task)
-    
-    next_run_time = None
 
-    while True:
-        if scheduler_running == True:
-            schedule.run_pending()
-            next_run = schedule.next_run()
-            if next_run and next_run != next_run_time:
-                next_run_time = next_run
-                print(f"Next scheduled job will run at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
-            time.sleep(1)
-        else:
-            break
+    #start the scheduler in a different thread
+    global scheduler_thread
+    scheduler_thread = threading.Thread(target=run_schedule, args=(stop_event,))
+    scheduler_thread.start()
+
 
 @eel.expose
 def trigger_task_halt():
-    scheduler_running = False
-    print('Scheduler has stopped')
+    stop_event.set()
+    scheduler_thread.join()
+    #clear all previous jobs
+    schedule.clear()
+    print('Scheduler has stopped and has been cleared')
     
 
 
