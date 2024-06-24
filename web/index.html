@@ -42,9 +42,9 @@
                 <!--button group for play and stop buttons-->
                 <div style="margin-top:1em; text-align: center;">
                      <!--play button-->
-                    <button type="button" class="btn btn-primary btn-success" style="margin-top: 1em;" onclick="triggerScheduleTasks()">Play</button>
+                    <button type="button" id="play-btn" class="btn btn-primary btn-success" style="margin-top: 1em;" onclick="triggerScheduleTasks()">Play</button>
                     <!--stop button-->
-                    <button type="button" class="btn btn-primary btn-danger" style="margin-top: 1em;" onclick="triggerTaskHalt()">Stop</button>
+                    <button type="button" id="stop-btn" class="btn btn-primary btn-danger" style="margin-top: 1em;" onclick="triggerTaskHalt()" disabled>Stop</button>
                 </div>
             </div>
             <!--main information display-->
@@ -186,14 +186,34 @@
 
     }
 
+
+    function playAndStop(state){
+        playButton = document.getElementById("play-btn");
+        stopButton = document.getElementById("stop-btn");
+        if(state == "play"){
+            playButton.disabled = true;
+            stopButton.disabled = false;
+        }
+        else if(state == "stop"){
+            playButton.disabled = false;
+            stopButton.disabled = true;
+        }
+    }
+
+
     function triggerScheduleTasks(){
         //call python function that does these
         eel.trigger_schedule_tasks();
+
+        //disable the play button during schedule run
+        playAndStop('play');
+
 
     }
 
     function triggerTaskHalt(){
         eel.trigger_task_halt();
+        playAndStop('stop');
 
     }
 
