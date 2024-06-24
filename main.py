@@ -11,15 +11,6 @@ import threading
 eel.init("web")
 
 
-'''
-Writing some notes here for future me:
-1. Create a function that saves a map of all the schedule tasks as a dictionary
-2. Create a function that takes above dictionary and schedules them accordingly
-3. Use a global flag to control a while loop within the scheduler function
-4. Use a JS function to toggle the global flag
-'''
-
-
 
 #some global variables to keep track of modules getting imported (key refers to the module name)
 imported_modules = {}
