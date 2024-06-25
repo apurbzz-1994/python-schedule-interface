@@ -103,6 +103,9 @@ def add_to_task_list(task_json):
     #assign unique id to each task
     task_to_add['id'] = secrets.token_hex(4)
 
+    #adding a variable to track the number of times the task ran, starts with zero
+    task_to_add['freq'] = 0
+
     #add to all_tasks array
     all_tasks.append(task_to_add)
 
@@ -131,9 +134,20 @@ def define_scheduler(task):
     task_function = getattr(task_module, task['function'])
 
     if task['set-type'] == 'sec':
-        schedule.every(int(task['set-time'])).seconds.do(task_function)
+        schedule.every(int(task['set-time'])).seconds.do(task_function).tag(task['id'])
     else:
-        schedule.every(int(task['set-time'])).minutes.do(task_function)
+        schedule.every(int(task['set-time'])).minutes.do(task_function).tag(task['id'])
+
+
+
+'''
+print out time of next run, if needed
+'''
+def show_time_of_task_run():
+    for each_task in all_tasks:
+        current_task = schedule.get_jobs(each_task['id'])
+        print(f" task {each_task['id']} is scheduled for {current_task[0].next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+
 
 
 '''
@@ -147,6 +161,7 @@ def run_schedule(stop_event):
         if next_run and next_run != next_run_time:
             next_run_time = next_run
             print(f"Next scheduled job will run at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+        #show_time_of_task_run()
         time.sleep(1)
 
 
