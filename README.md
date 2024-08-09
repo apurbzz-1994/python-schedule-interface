@@ -3,4 +3,4 @@ A simple GUI for Python's Schedule library
 
 # Work In Progress
 
-![first version screenshot](/git_assets/v1_screenshot2.png)
+![first version screenshot](/git_assets/v1_screenshot3.png)
