@@ -157,6 +157,7 @@
                         <div class="card-body">
                           <h5 class="card-title">Module: ${eachTask['module']}</h5>
                            <p class="card-text">Schedule function <b>${eachTask['function']}()</b> to run every <b>${eachTask['set-time']} ${eachTask['set-type']}</b></p>
+                           <p><b>Next Run:</b> ${eachTask['next-runtime']}</p>
                           <button type="button" class="btn btn-warning task-freq" style="margin-top:2em">
                             Script Runs <span class="badge badge-light">${eachTask['freq']}</span>
                           </button>

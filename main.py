@@ -6,7 +6,7 @@ import json
 import secrets
 import schedule
 import time
-from datetime import datetime
+import datetime
 import threading
 import traceback
 eel.init("web")
@@ -91,6 +91,15 @@ def send_functions_list(selected_module):
     return to_render
 
 
+def refresh_task_view():
+    #trigger a page refresh on some sort here
+    flipped_task_list = sorted(all_tasks, key=lambda x: x["set-time"], reverse=False)
+    #return the list with new tasks to JS
+    to_render = json.dumps(flipped_task_list)
+    eel.renderAddedTasks(to_render)
+
+
+
 def main_thread():
     #loading all the modules
     module_list_strings = get_module_names()
@@ -118,6 +127,15 @@ def add_to_task_list(task_json):
     4. chuck the task with id in all_tasks
     5. print out the results and test!
     '''
+    '''
+    structure for a task
+     let task = {
+            'module': selectedModule,
+            'function': selectedFunction, 
+            'set-time': setTime,
+            'set-type': setType...min and sec
+        };
+    '''
 
     task_to_add = json.loads(task_json)
     #assign unique id to each task
@@ -125,6 +143,17 @@ def add_to_task_list(task_json):
 
     #adding a variable to track the number of times the task ran, starts with zero
     task_to_add['freq'] = 0
+
+    #do come calculations and add a field to denote next run-time
+    # current_time = datetime.datetime.now()
+    # next_runtime = None
+
+    # if task_to_add['set-type'] == "min":
+    #     next_runtime = current_time + datetime.timedelta(minutes = int(task_to_add['set-time']))
+    # else:
+    #     next_runtime = current_time + datetime.timedelta(seconds = int(task_to_add['set-time']))
+
+    task_to_add['next-runtime'] = "Not Running"
 
     #add to all_tasks array
     all_tasks.append(task_to_add)
@@ -155,11 +184,12 @@ def handle_function_run(f, task_id):
        new_freq = task_matching_id[0]['freq'] + 1
        #update frequency
        task_matching_id[0]['freq'] = new_freq
+       #determine the next runtime
+       #next_runtime = schedule.next_run(task_matching_id[0]['id'])
+       #update next runtime
+       #task_matching_id[0]['next-runtime'] = next_runtime.strftime('%d-%m-%Y_%H-%M-%S') 
        #trigger a page refresh on some sort here
-       flipped_task_list = sorted(all_tasks, key=lambda x: x["set-time"], reverse=False)
-       #return the list with new tasks to JS
-       to_render = json.dumps(flipped_task_list)
-       eel.renderAddedTasks(to_render)
+       refresh_task_view()
 
 
 
@@ -173,7 +203,7 @@ def define_scheduler(task):
             'module': selectedModule,
             'function': selectedFunction, 
             'set-time': setTime,
-            'set-type': setType
+            'set-type': setType...min and sec
         };
     '''
     task_module = imported_modules[task['module']]
@@ -186,6 +216,20 @@ def define_scheduler(task):
     else:
         schedule.every(int(task['set-time'])).minutes.do(handle_function_run, f = task_function, task_id = task['id']).tag(task['id'])
 
+
+
+
+def initial_next_task_runtime_update():
+    for each_task in all_tasks:
+        next_task_run = schedule.next_run(each_task['id'])
+        each_task['next-runtime'] = next_task_run.strftime('%d/%m/%Y %H:%M:%S')
+    refresh_task_view()
+   
+
+def reset_all_next_runtime():
+    for each_task in all_tasks:
+        each_task['next-runtime'] = "Task Stopped"
+    refresh_task_view()
 
 
 '''
@@ -201,11 +245,10 @@ def run_schedule(stop_event):
     next_run_time = None
     while not stop_event.is_set():
         schedule.run_pending()
+        initial_next_task_runtime_update()
         next_run = schedule.next_run()
         if next_run and next_run != next_run_time:
             next_run_time = next_run
-
-            #trigger the JS function here 
             print(f"Next scheduled job will run at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
         time.sleep(1)
 
@@ -238,23 +281,9 @@ def trigger_task_halt():
     scheduler_thread.join()
     #clear all previous jobs
     schedule.clear()
+    reset_all_next_runtime()
     print('Scheduler has stopped and has been cleared')
     
-
-
-'''
-Sends a flag before execution to denote the function has been executed
-Sends a flag after the execution to denote success or failure (later down the track)
-'''
-# def handle_task_function(f):
-#     try:
-#         #may not return anything for now but can later be used for tracking
-#         start_execution_fla
-#         execution_return = f()
-#     except Exception:
-#         print('script execution unsuccessful: ')
-#         traceback.print_exc()
-
 
 def main():
     eel.start("index.html")
