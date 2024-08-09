@@ -8,6 +8,7 @@ import schedule
 import time
 from datetime import datetime
 import threading
+import traceback
 eel.init("web")
 
 
@@ -22,6 +23,11 @@ all_tasks = []
 stop_event = threading.Event()
 scheduler_thread = None
 
+
+
+'''
+getting filenames for all python scripts in the directory
+'''
 def get_module_names():
     script_dir = './'
     all_modules = []
@@ -38,13 +44,20 @@ def get_module_names():
 
 
 
-#this grabs all function names
+'''
+When passed a module reference, this will return a list of all functions
+within that module 
+'''
 def load_module_functions(module_ref):
     all_attr = dir(module_ref)
     all_functions = [attr for attr in all_attr if inspect.isfunction(getattr(module_ref, attr))]
     return all_functions
 
 
+'''
+This grabs all module names and sends over to the frontend 
+for populating the first dropdown
+'''
 @eel.expose
 def send_module_list():
     module_list = get_module_names()
@@ -54,6 +67,13 @@ def send_module_list():
     modules_to_render = json.dumps(module_dic)
     return modules_to_render
 
+
+'''
+Takes in the name of the selected module and imports it in an object-oriented way - 
+creates a reference to the import and stores it in a global dictionary. 
+
+Also sends over functions list to the frontend to render the second dropdown
+'''
 @eel.expose
 def send_functions_list(selected_module):
     #create a record in the imported modules dict provided it doesn't already exist
@@ -117,13 +137,41 @@ def add_to_task_list(task_json):
     return to_render
 
 
+'''
+function wrapper to keep track of function runs and manage UI updates
+'''
+def handle_function_run(f, task_id):
+    try:
+        #try running this script
+       execution =  f() 
+    except Exception:
+        print('Script execution unsuccessful: ')
+        #write this to a file if script is unsuccessful
+        traceback.print_exc()
+    else:
+       #grab the dictionary from list of tasks, should only be one
+       task_matching_id = list(filter(lambda d: d['id'] == task_id, all_tasks))
+       #grab the frequency
+       new_freq = task_matching_id[0]['freq'] + 1
+       #update frequency
+       task_matching_id[0]['freq'] = new_freq
+       #trigger a page refresh on some sort here
+       flipped_task_list = sorted(all_tasks, key=lambda x: x["set-time"], reverse=False)
+       #return the list with new tasks to JS
+       to_render = json.dumps(flipped_task_list)
+       eel.renderAddedTasks(to_render)
+
+
+
+
 #schedules one task based on dict info
+#this is where the main shedule is mentioned
 def define_scheduler(task):
     '''
     structure for a task
      let task = {
             'module': selectedModule,
-            'function': selectedFunction,
+            'function': selectedFunction, 
             'set-time': setTime,
             'set-type': setType
         };
@@ -134,19 +182,9 @@ def define_scheduler(task):
     task_function = getattr(task_module, task['function'])
 
     if task['set-type'] == 'sec':
-        schedule.every(int(task['set-time'])).seconds.do(task_function).tag(task['id'])
+        schedule.every(int(task['set-time'])).seconds.do(handle_function_run, f = task_function, task_id = task['id']).tag(task['id'])
     else:
-        schedule.every(int(task['set-time'])).minutes.do(task_function).tag(task['id'])
-
-
-
-'''
-print out time of next run, if needed
-'''
-def show_time_of_task_run():
-    for each_task in all_tasks:
-        current_task = schedule.get_jobs(each_task['id'])
-        print(f" task {each_task['id']} is scheduled for {current_task[0].next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+        schedule.every(int(task['set-time'])).minutes.do(handle_function_run, f = task_function, task_id = task['id']).tag(task['id'])
 
 
 
@@ -154,14 +192,21 @@ def show_time_of_task_run():
 function to run scheduler with a thread event
 '''
 def run_schedule(stop_event):
+    '''
+    1. schedule.next_run() will grab the schedule object that is meant to run next
+    2. you can grab more information regarding the next scheduled task from here, possibly tags as well
+    3. trigger the JS function based on next runtime
+    
+    '''
     next_run_time = None
     while not stop_event.is_set():
         schedule.run_pending()
         next_run = schedule.next_run()
         if next_run and next_run != next_run_time:
             next_run_time = next_run
+
+            #trigger the JS function here 
             print(f"Next scheduled job will run at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
-        #show_time_of_task_run()
         time.sleep(1)
 
 
@@ -195,6 +240,20 @@ def trigger_task_halt():
     schedule.clear()
     print('Scheduler has stopped and has been cleared')
     
+
+
+'''
+Sends a flag before execution to denote the function has been executed
+Sends a flag after the execution to denote success or failure (later down the track)
+'''
+# def handle_task_function(f):
+#     try:
+#         #may not return anything for now but can later be used for tracking
+#         start_execution_fla
+#         execution_return = f()
+#     except Exception:
+#         print('script execution unsuccessful: ')
+#         traceback.print_exc()
 
 
 def main():

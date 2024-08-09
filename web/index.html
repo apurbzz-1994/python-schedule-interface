@@ -140,7 +140,8 @@
             loadModuleFunctions('no-select');
         }
     }
-
+    //exposing this to eel so that tasks can be rendered on each run 
+    eel.expose(renderAddedTasks);
     function renderAddedTasks(data){
         allTasks = JSON.parse(data);
         taskDisplay = document.getElementById('main-display');
@@ -149,15 +150,16 @@
 
 
         for(let eachTask of allTasks){
-            taskCard = `<div class="card">
+            taskCard = `<div class="card" id="${eachTask['id']}">
                         <div class="card-header">
                           Task ID: ${eachTask['id']}
                         </div>
                         <div class="card-body">
                           <h5 class="card-title">Module: ${eachTask['module']}</h5>
+                          <p class = 'task-freq'>${eachTask['freq']}</p>
                           <p class="card-text">Schedule function <b>${eachTask['function']}()</b> to run every <b>${eachTask['set-time']} ${eachTask['set-type']}</b></p>
                         </div>
-                    </div>`;   
+                        </div>`;   
             allHtml += taskCard;
         }
 
@@ -208,13 +210,21 @@
         //disable the play button during schedule run
         playAndStop('play');
 
-
     }
 
     function triggerTaskHalt(){
         eel.trigger_task_halt();
         playAndStop('stop');
 
+    }
+
+    eel.expose(updateTaskFrequency)
+    function updateTaskFrequency(taskId, freq){
+        //freqNum = document.getElementById(taskId).getElementsByClassName('task-freq')
+        //freqNum.innerHTML = freq
+
+        console.log(taskId)
+        console.log(freq)
     }
 
     //js stuff to do as soon as the whole DOM loads
