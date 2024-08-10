@@ -36,7 +36,7 @@
                 </div>
                 <!--submit button-->
                 <div style="margin-top:1em;">
-                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 1em;" onclick="addTaskOnButtonPress()">Add Schedule Task</button>
+                    <button type="button" id="add-task-btn" class="btn btn-primary btn-block" style="margin-top: 1em;" onclick="addTaskOnButtonPress()">Add Schedule Task</button>
                 </div>
 
                 <!--button group for play and stop buttons-->
@@ -153,7 +153,7 @@
             taskCard = `<div class="card" id="${eachTask['id']}">
                         <div class="card-header">
                           Task ID: ${eachTask['id']}
-                          <button type="button" class="btn-sm btn-danger float-right task-delete">Delete</button>
+                          <button type="button" id = "${eachTask['id']}-task-delete" class="btn btn-primary btn-danger float-right delete-task-btn" onclick="deleteTaskOnClick(this)">Delete</button>
                         </div>
                         <div class="card-body">
                           <h5 class="card-title">Module: ${eachTask['module']}</h5>
@@ -170,6 +170,21 @@
         taskDisplay.innerHTML = allHtml;
 
     }
+
+
+    function deleteTaskOnClick(element){
+        //grab the id
+        deleteTaskId = element.id.split("-")[0];
+        taskCardToDelete = document.getElementById(deleteTaskId);
+        //remove the element
+        taskCardToDelete.remove();
+
+        //trigger a python method here to remove the task from the task list
+        eel.remove_from_task_list(deleteTaskId);
+    }
+
+
+
 
 
     function addTaskOnButtonPress(){
@@ -192,17 +207,37 @@
 
     }
 
+    eel.expose(disableAllDeleteButtons);
+    function disableAllDeleteButtons(state){
+        allDeleteButtons = document.getElementsByClassName('delete-task-btn');
+        if(state == 'play'){
+            for(let each of allDeleteButtons){
+                each.disabled = true;
+            }
+        }
+        else{
+            for(let each of allDeleteButtons){
+                each.disabled = false;
+            }  
+        }
+       
+    }
+
 
     function playAndStop(state){
         playButton = document.getElementById("play-btn");
         stopButton = document.getElementById("stop-btn");
+        addTaskButton = document.getElementById("add-task-btn")
         if(state == "play"){
             playButton.disabled = true;
             stopButton.disabled = false;
+            addTaskButton.disabled = true;
+           
         }
         else if(state == "stop"){
             playButton.disabled = false;
             stopButton.disabled = true;
+            addTaskButton.disabled = false;
         }
     }
 
@@ -213,12 +248,14 @@
 
         //disable the play button during schedule run
         playAndStop('play');
+        disableAllDeleteButtons('play')
 
     }
 
     function triggerTaskHalt(){
         eel.trigger_task_halt();
         playAndStop('stop');
+        disableAllDeleteButtons('stop')
 
     }
 

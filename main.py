@@ -91,12 +91,13 @@ def send_functions_list(selected_module):
     return to_render
 
 
-def refresh_task_view():
+def refresh_task_view(state):
     #trigger a page refresh on some sort here
     flipped_task_list = sorted(all_tasks, key=lambda x: x["set-time"], reverse=False)
     #return the list with new tasks to JS
     to_render = json.dumps(flipped_task_list)
     eel.renderAddedTasks(to_render)
+    eel.disableAllDeleteButtons(state)
 
 
 
@@ -166,6 +167,12 @@ def add_to_task_list(task_json):
     return to_render
 
 
+@eel.expose
+def remove_from_task_list(task_id):
+    for each_task in all_tasks:
+        if each_task['id'] == task_id:
+            all_tasks.remove(each_task)
+
 '''
 function wrapper to keep track of function runs and manage UI updates
 '''
@@ -189,7 +196,7 @@ def handle_function_run(f, task_id):
        #update next runtime
        #task_matching_id[0]['next-runtime'] = next_runtime.strftime('%d-%m-%Y_%H-%M-%S') 
        #trigger a page refresh on some sort here
-       refresh_task_view()
+       refresh_task_view('play')
 
 
 
@@ -223,13 +230,13 @@ def initial_next_task_runtime_update():
     for each_task in all_tasks:
         next_task_run = schedule.next_run(each_task['id'])
         each_task['next-runtime'] = next_task_run.strftime('%d/%m/%Y %H:%M:%S')
-    refresh_task_view()
+    refresh_task_view('play')
    
 
 def reset_all_next_runtime():
     for each_task in all_tasks:
         each_task['next-runtime'] = "Task Stopped"
-    refresh_task_view()
+    refresh_task_view('stop')
 
 
 '''
