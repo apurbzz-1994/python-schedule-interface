@@ -284,14 +284,20 @@ def trigger_schedule_tasks():
 
 @eel.expose
 def trigger_task_halt():
-    stop_event.set()
-    scheduler_thread.join()
-    #clear all previous jobs
-    schedule.clear()
-    reset_all_next_runtime()
-    #clearing out the task list as well
-    all_tasks.clear()
+    if scheduler_thread is not None:
+        stop_event.set()
+        scheduler_thread.join()
+        #clear all previous jobs
+        schedule.clear()
+        reset_all_next_runtime()
+        #clearing out the task list as well
+        all_tasks.clear()
+        imported_modules.clear()
+    else:
+        all_tasks.clear()
+        imported_modules.clear()
     print('Scheduler has stopped and has been cleared')
+       
     
 
 def main():

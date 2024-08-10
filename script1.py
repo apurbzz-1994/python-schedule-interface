@@ -1,3 +1,5 @@
+from myapi import someweirdshit
+
 def onefunction():
     print('this is a function from script1')
 
