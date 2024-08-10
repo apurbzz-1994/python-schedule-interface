@@ -184,9 +184,6 @@
     }
 
 
-
-
-
     function addTaskOnButtonPress(){
         //need to make a map of data to be sent over to python
         //schedule-time and schedule-type
@@ -273,7 +270,11 @@
         eel.send_module_list()(loadModuleNames);
     });
 
-    
+    //event listener for app close event
+    window.addEventListener('beforeunload', function (e) {
+            //e.preventDefault();
+            eel.trigger_task_halt();
+        });
 
 </script>
 

@@ -289,6 +289,8 @@ def trigger_task_halt():
     #clear all previous jobs
     schedule.clear()
     reset_all_next_runtime()
+    #clearing out the task list as well
+    all_tasks.clear()
     print('Scheduler has stopped and has been cleared')
     
 
