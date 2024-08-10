@@ -316,8 +316,8 @@ def trigger_task_halt():
         schedule.clear()
         reset_all_next_runtime()
         # clearing out the task list as well
-        all_tasks.clear()
-        imported_modules.clear()
+        #all_tasks.clear()
+        #imported_modules.clear()
     else:
         all_tasks.clear()
         imported_modules.clear()

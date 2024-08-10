@@ -273,17 +273,29 @@
     function playAndStop(state) {
         playButton = document.getElementById("play-btn");
         stopButton = document.getElementById("stop-btn");
-        addTaskButton = document.getElementById("add-task-btn")
+        addTaskButton = document.getElementById("add-task-btn");
+        moduleSelection = document.getElementById("modules");
+        functionsDropDown = document.getElementById("functions");
+        sTime = document.getElementById("schedule-time");
+        sType = document.getElementById("schedule-type");
         if (state == "play") {
             playButton.disabled = true;
             stopButton.disabled = false;
             addTaskButton.disabled = true;
+            moduleSelection.disabled = true;
+            functionsDropDown.disabled = true;
+            sTime.disabled = true;
+            sType.disabled = true;
 
         }
         else if (state == "stop") {
             playButton.disabled = false;
             stopButton.disabled = true;
             addTaskButton.disabled = false;
+            moduleSelection.disabled = false;
+            functionsDropDown.disabled = false;
+            sTime.disabled = false;
+            sType.disabled = false;
         }
     }
 
