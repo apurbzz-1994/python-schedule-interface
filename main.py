@@ -108,6 +108,32 @@ def send_functions_list(selected_module):
     to_render = json.dumps(module_func)
     return to_render
 
+'''
+For selected function, grab arguments and send to the frontend
+'''
+@eel.expose
+def send_argument_list(selected_function, selected_module):
+    # Access the module from the imported_modules dictionary
+    module = imported_modules[selected_module]
+    
+    # Access the function from the module by name (string) if necessary
+    func = getattr(module, selected_function)
+    
+    # Get the signature of the function
+    sig = inspect.signature(func)
+    
+    # Get all parameters from the function signature
+    all_parameters = [p for p in sig.parameters]
+
+    json_load = {
+        'parameters': all_parameters
+    }
+
+    to_render = json.dumps(json_load)
+    print(to_render)
+    return to_render
+    
+
 
 def refresh_task_view(state):
     # trigger a page refresh on some sort here
@@ -149,7 +175,9 @@ def add_to_task_list(task_json):
     structure for a task
      let task = {
             'module': selectedModule,
-            'function': selectedFunction, 
+            'function': selectedFunction,
+            'argument': providedFunctionArguments,
+            'argument-message': argMessage, 
             'set-time': setTime,
             'set-type': setType...min and sec
         };
@@ -172,6 +200,8 @@ def add_to_task_list(task_json):
     #     next_runtime = current_time + datetime.timedelta(seconds = int(task_to_add['set-time']))
 
     task_to_add['next-runtime'] = "Not Running"
+
+    print(task_to_add)
 
     # add to all_tasks array
     all_tasks.append(task_to_add)
@@ -197,10 +227,13 @@ function wrapper to keep track of function runs and manage UI updates
 '''
 
 
-def handle_function_run(f, task_id):
+def handle_function_run(f, task_id, func_pars):
     try:
         # try running this script
-        execution = f()
+        if len(func_pars) == 0:
+             execution = f()
+        else:
+            execution = f(*func_pars)       
     except Exception:
         print('Script execution unsuccessful: ')
         # write this to a file if script is unsuccessful
@@ -238,12 +271,18 @@ def define_scheduler(task):
     # grabbing the function reference
     task_function = getattr(task_module, task['function'])
 
+    task_function_parameters = []
+
+    #if task function has parameters
+    if task['argument'] != " ":
+        task_function_parameters = task['argument'].replace(" ", "").split(',')
+
     if task['set-type'] == 'sec':
         schedule.every(int(task['set-time'])).seconds.do(handle_function_run,
-                                                         f=task_function, task_id=task['id']).tag(task['id'])
+                                                         f=task_function, task_id=task['id'], func_pars=task_function_parameters).tag(task['id'])
     else:
         schedule.every(int(task['set-time'])).minutes.do(handle_function_run,
-                                                         f=task_function, task_id=task['id']).tag(task['id'])
+                                                         f=task_function, task_id=task['id'], func_pars=task_function_parameters).tag(task['id'])
 
 
 def initial_next_task_runtime_update():
@@ -262,8 +301,6 @@ def reset_all_next_runtime():
 '''
 function to run scheduler with a thread event
 '''
-
-
 def run_schedule(stop_event):
     '''
     1. schedule.next_run() will grab the schedule object that is meant to run next
