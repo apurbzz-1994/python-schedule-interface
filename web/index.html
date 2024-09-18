@@ -53,7 +53,7 @@
                 <!--submit button-->
                 <div style="margin-top:1em;">
                     <button type="button" id="add-task-btn" class="btn btn-primary btn-block" style="margin-top: 1em;"
-                        onclick="addTaskOnButtonPress()">Add Schedule Task</button>
+                        onclick="addTaskOnButtonPress()" disabled>Add Schedule Task</button>
                 </div>
 
                 <!--button group for play and stop buttons-->
@@ -69,7 +69,7 @@
             <!--main information display-->
             <div class="col-12 col-md-7 col-lg-7 mt-2 overflow-auto">
                 <div id="error-display">
-
+                    <!--error messages would get dynamically generated here-->
                 </div>
                 <div id="main-display">
 
@@ -91,6 +91,31 @@
 <script type="text/javascript">
     //js stuff goes here
 
+    /**
+     * function for rendering error messages for cases where an exception is 
+     * raised in the Python script
+     */
+
+    eel.expose(renderErrorMessage);
+    function renderErrorMessage(data){
+        console.log('function was triggered');
+        errorMessage = JSON.parse(data).error;
+        taskId = JSON.parse(data).task_id;
+        errorDiv = document.getElementById('error-display');
+
+        allHtml = '';
+        
+        //add error message to the error div   
+        allHtml += `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class='alert-heading'>Task ID: ${taskId}</h6>
+            ${errorMessage}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span></button>
+            </div>`;
+
+        errorDiv.innerHTML += allHtml;
+    }
+
 
     function loadModuleNames(data) {
         let moduleSelectionDiv = document.getElementById('module-selection');
@@ -111,7 +136,7 @@
         moduleDropDown.addEventListener('change', sendModuleNameOnModuleSelection);
     }
 
-
+    
     function updateScheduleOptions() {
         let scheduleSelectionDiv = document.getElementById('schedule-selection');
         let selectedFunction = document.getElementById('functions').value;
@@ -120,11 +145,19 @@
             allHtml = `<p>Please select a <b>Schedule time</b>:</p><p>"<i>I want to schedule <b>${selectedFunction}()</b>`;
             allHtml += ` to run every <input type="number" min="1" class="form-control form-control-sm mb-2 mr-2 w-25" style = "display: inline;" id="schedule-time"><select class = "form-control form-control-sm mb-2 mr-2 w-50" name="schedule-type" style = "display: inline;" id="schedule-type"><option value="sec">second(s)</option><option value="min">minute(s)</option></select>"</i>`;
             scheduleSelectionDiv.innerHTML = allHtml;
+
+            //enable add task button
+            addTaskButton = document.getElementById('add-task-btn');
+            addTaskButton.disabled = false;
         }
         else {
             allHtml = `<p>Please select a <b>Schedule time</b>:</p><p>"<i>I want to schedule <b>no functions</b>`;
             allHtml += ` to run every <input type="number" min="1" class="form-control form-control-sm mb-2 mr-2 w-25" style = "display: inline;" id="schedule-time" disabled><select class = "form-control form-control-sm mb-2 mr-2 w-50" name="schedule-type" style = "display: inline;" id="schedule-type" disabled><option value="sec">second(s)</option><option value="min">minute(s)</option></select>"</i>`;
             scheduleSelectionDiv.innerHTML = allHtml;
+
+            //disable add task button
+            addTaskButton = document.getElementById('add-task-btn');
+            addTaskButton.disabled = true;
         }
 
     }
@@ -248,8 +281,22 @@
     //exposing this to eel so that tasks can be rendered on each run 
     eel.expose(renderAddedTasks);
     function renderAddedTasks(data) {
-        errorDisplayGoAway();
-        allTasks = JSON.parse(data);
+        jsonPayload = JSON.parse(data);
+        allTasks = null;
+        removeErrorDiv = true;
+
+        if('remove_error_div' in jsonPayload){
+            allTasks = jsonPayload.task_list;
+            removeErrorDiv = false;
+        }
+        else{
+            allTasks = jsonPayload;
+        }
+
+        if(removeErrorDiv){
+            errorDisplayGoAway();
+        }    
+        
         taskDisplay = document.getElementById('main-display');
 
         allHtml = '';

@@ -23,6 +23,17 @@ stop_event = threading.Event()
 scheduler_thread = None
 
 
+
+def render_error_message(e, task_id, add_message):
+    print('function was triggered')
+    error_message = {
+        'error': f"An error has occured: {e}. {add_message}",
+        'task_id': task_id
+        }
+    to_render = json.dumps(error_message)
+    eel.renderErrorMessage(to_render)
+
+
 '''
 getting filenames for all python scripts in the directory
 '''
@@ -140,7 +151,13 @@ def refresh_task_view(state):
     flipped_task_list = sorted(
         all_tasks, key=lambda x: x["set-time"], reverse=False)
     # return the list with new tasks to JS
-    to_render = json.dumps(flipped_task_list)
+
+    payload = {
+        'task_list': flipped_task_list,
+        'remove_error_div': 'n'
+    }
+
+    to_render = json.dumps(payload)
     eel.renderAddedTasks(to_render)
     eel.disableAllDeleteButtons(state)
 
@@ -225,8 +242,6 @@ def remove_from_task_list(task_id):
 '''
 function wrapper to keep track of function runs and manage UI updates
 '''
-
-
 def handle_function_run(f, task_id, func_pars):
     try:
         # try running this script
@@ -234,10 +249,11 @@ def handle_function_run(f, task_id, func_pars):
              execution = f()
         else:
             execution = f(*func_pars)       
-    except Exception:
-        print('Script execution unsuccessful: ')
-        # write this to a file if script is unsuccessful
-        traceback.print_exc()
+    except Exception as e:
+        render_error_message(e, task_id, "Please inspect the function and function parameters.")
+        #print('Script execution unsuccessful: ')
+        # write this to a file if script is unsuccessful (not implemented)
+        #traceback.print_exc()
     else:
         # grab the dictionary from list of tasks, should only be one
         task_matching_id = list(
