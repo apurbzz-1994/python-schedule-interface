@@ -1,3 +1,5 @@
+import looneytoons
+
 def fourfunction():
     print('this is a function from script2')
 

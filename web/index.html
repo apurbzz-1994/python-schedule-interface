@@ -98,16 +98,15 @@
 
     eel.expose(renderErrorMessage);
     function renderErrorMessage(data){
-        console.log('function was triggered');
         errorMessage = JSON.parse(data).error;
-        taskId = JSON.parse(data).task_id;
+        errorHeading = JSON.parse(data).error_type;
         errorDiv = document.getElementById('error-display');
 
         allHtml = '';
         
         //add error message to the error div   
         allHtml += `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <h6 class='alert-heading'>Task ID: ${taskId}</h6>
+            <h6 class='alert-heading'>${errorHeading}</h6>
             ${errorMessage}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span></button>
@@ -182,21 +181,6 @@
                 }
             }
             else{
-                errorDisplay = document.getElementById('error-display');
-                exceptionError = jsonData.error.split("|")[0];
-                tracebackError = jsonData.error.split("|")[1];
-                errorDisplay.innerHTML = `
-                                          <hr>
-                                          <h5>An error occured while loading the functions from this script</h5>
-                                          <p>
-                                            <b>Error: </b>${exceptionError}
-                                          </p>
-                                          <p>
-                                            <b>Details: </b><small><code>${tracebackError}</code></small>   
-                                          </p>
-                                          <button type="button" class="btn btn-primary"
-                                          onclick="errorDisplayGoAway()">Ok</button><hr>
-                                            `;
                 allHtml += '<option value="no">No functions selected</option>';
             }
 

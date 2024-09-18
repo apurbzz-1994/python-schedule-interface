@@ -24,11 +24,11 @@ scheduler_thread = None
 
 
 
-def render_error_message(e, task_id, add_message):
+def render_error_message(e, error_type, add_message):
     print('function was triggered')
     error_message = {
         'error': f"An error has occured: {e}. {add_message}",
-        'task_id': task_id
+        'error_type': error_type
         }
     to_render = json.dumps(error_message)
     eel.renderErrorMessage(to_render)
@@ -109,11 +109,10 @@ def send_functions_list(selected_module):
             'error': 'no'
         }
     except Exception as e:
-        error_traceback = traceback.format_exc()
-        error_message = f"{e}|{error_traceback}"
+        render_error_message(e, f"Module {selected_module}: Function Load Error", "Issue with loading functions for this module. Please check if all dependencies are imported.")
         module_func = {
              'functions': [],
-             'error': error_message
+             'error': 'yes'
         }
 
     to_render = json.dumps(module_func)
@@ -250,7 +249,7 @@ def handle_function_run(f, task_id, func_pars):
         else:
             execution = f(*func_pars)       
     except Exception as e:
-        render_error_message(e, task_id, "Please inspect the function and function parameters.")
+        render_error_message(e, f"Task ID: {task_id}", "Please inspect the function and function parameters.")
         #print('Script execution unsuccessful: ')
         # write this to a file if script is unsuccessful (not implemented)
         #traceback.print_exc()
