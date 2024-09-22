@@ -54,12 +54,12 @@ This small tool built using the [Eel library](https://github.com/python-eel/Eel)
 2. Launch the tool. You'll see all the files you've just added in the first drop-down:
 
 ![modules dropdown](/git_assets/workflow_1.png)
-<img src="/git_assets/workflow_1.png" width="588" height="186" />
+<img src="/git_assets/workflow_1.png" width="588" height="286" />
 
 3. On selecting a module, the second drop-down will be populated with module functions:
 
 ![modules dropdown](/git_assets/workflow_2.png)
-<img src="/git_assets/workflow_2.png" width="588" height="186" />
+<img src="/git_assets/workflow_2.png" width="588" height="286" />
 
 4. On selecting a function, if it accepts arguments, you can input them here, separated by commas for multiple arguments. For example, the function being scheduled here will take a CSV file of course codes and will grab the student count for each from a Learning Management System. In this case, the function's argument is the filename of the CSV:
  
