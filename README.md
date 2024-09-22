@@ -61,7 +61,7 @@ This small tool built using the [Eel library](https://github.com/python-eel/Eel)
 
 4. On selecting a function, if it accepts arguments, you can input them here, separated by commas for multiple arguments. For example, the function being scheduled here will take a CSV file of course codes and will grab the student count for each from a Learning Management System. In this case, the function's argument is the filename of the CSV:
  
- ![argument input](/git_assets/workflow_3.png)
+ <img src="/git_assets/workflow_3.png" width="588" height="286" />
 
  5. Set a frequency for the schedule. You're able to set this in `minutes` or `seconds`. 
 
