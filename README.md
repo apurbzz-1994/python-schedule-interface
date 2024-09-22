@@ -12,7 +12,7 @@ This small tool built using the [Eel library](https://github.com/python-eel/Eel)
 
 ## Features
 - Intuitively displays all Python modules within the directory in a dropdown, and populates all functions within the selected module for scheduling. 
-- Schedule functions in minutes or seconds. 
+- Schedule functions in `minutes` or `seconds`. 
 - Allows for passing arguments to functions with parameters while scheduling for useful workflows. 
 - Combine multiple schedule tasks to create a list/flow. Afterwards, `play` and `stop` the flow, which runs on a sepatate thread. 
 - Basic error handling features that display error messages for when a function fails to run. 
