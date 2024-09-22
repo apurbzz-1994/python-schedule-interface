@@ -39,3 +39,55 @@ This small tool built using the [Eel library](https://github.com/python-eel/Eel)
     Depending on your system, you may need to use `python` or `python3` in the above command. 
 
     This will launch the dashboard. 
+
+
+# Workflow
+1. Place all your Python module files/scripts in the same directory as this project's `main.py` file. 
+
+> [!NOTE]
+> It's recommended that you have your Python scripts modularised and broken down into functions that can be scheduled. 
+> If you're using a `if __name__ == "__main__":` statement in your script, you'll have to remove this and schedule the `main()`
+> function via the tool instead. This is because the tool imports the selected Python module to access its functions and we 
+> want to prevent unwanted execution at this stage. 
+
+2. Launch the tool. You'll see all the files you've just added in the first drop-down:
+![modules dropdown](/git_assets/workflow_1.png)
+
+3. On selecting a module, the second drop-down will be populated with module functions:
+![modules dropdown](/git_assets/workflow_2.png)
+
+4. On selecting a function, if it accepts arguments, you can input them here, separated by commas for multiple. For example, the function I'm trying to schedule will take a CSV file of course codes and will grab the student count for each from a Learning Management System. In this case, the argument is the filename of the CSV:
+ ![argument input](/git_assets/workflow_3.png)
+
+ 5. Set a frequency for the schedule. You're able to set a `minutes` or `seconds` value. 
+
+ 6. Once ready, click on the `Add Schedule Task` button to add a task to the list/flow. 
+
+ 7. In a similar manner, create as many tasks as needed. You're also able to remove tasks from the list by clicking the `Delete` button 
+ on the top right corner of each task. 
+
+ 8. Once your schedule list is ready, hit `Play` to run the scheduler. This will periodically run the tasks based on the frequency set. The GUI will update you on the **number of total script runs** and **time for next script run** for each of the tasks:
+
+ ![first version screenshot](/git_assets/workflow_4.png)
+
+ 9. To halt the flow, click on th `Stop` button. To resume the flow, hit `Play` again. 
+
+
+# Common errors
+
+## 'No Module' error
+![first version screenshot](/git_assets/error_1.png)
+
+**Description:** This implies that the Python script from which you're trying to schedule a function is making use of a module that hasn't been installed yet, but has been imported in the script. You'll experience this error while the tool loads the function. 
+
+**Fix:** Install the required module using `pip`. 
+
+
+## Function errors
+![first version screenshot](/git_assets/error_2.png)
+
+**Description:** The tool will catch any error that the scheduled functions may throw and render a corresponding error message.  
+
+**Fix:** Check which task's function is throwing an error by checking the task ID in the error message, and fix the script accordingly. 
+
+
