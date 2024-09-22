@@ -38,7 +38,6 @@ def render_error_message(e, error_type, add_message):
 getting filenames for all python scripts in the directory
 '''
 
-
 def get_module_names():
     script_dir = './'
     all_modules = []
@@ -181,13 +180,6 @@ def main_thread():
 @eel.expose
 def add_to_task_list(task_json):
     '''
-    1. create an array called all_tasks
-    2. turn the json back to a dictionary
-    3. generate an unique identifer (maybe with current time + some kind of hash) to assign to the task
-    4. chuck the task with id in all_tasks
-    5. print out the results and test!
-    '''
-    '''
     structure for a task
      let task = {
             'module': selectedModule,
@@ -238,6 +230,9 @@ def remove_from_task_list(task_id):
             all_tasks.remove(each_task)
 
 
+
+
+
 '''
 function wrapper to keep track of function runs and manage UI updates
 '''
@@ -250,9 +245,6 @@ def handle_function_run(f, task_id, func_pars):
             execution = f(*func_pars)       
     except Exception as e:
         render_error_message(e, f"Task ID: {task_id}", "Please inspect the function and function parameters.")
-        #print('Script execution unsuccessful: ')
-        # write this to a file if script is unsuccessful (not implemented)
-        #traceback.print_exc()
     else:
         # grab the dictionary from list of tasks, should only be one
         task_matching_id = list(
@@ -261,10 +253,6 @@ def handle_function_run(f, task_id, func_pars):
         new_freq = task_matching_id[0]['freq'] + 1
         # update frequency
         task_matching_id[0]['freq'] = new_freq
-        # determine the next runtime
-        # next_runtime = schedule.next_run(task_matching_id[0]['id'])
-        # update next runtime
-        # task_matching_id[0]['next-runtime'] = next_runtime.strftime('%d-%m-%Y_%H-%M-%S')
         # trigger a page refresh on some sort here
         refresh_task_view('play')
 
@@ -272,15 +260,6 @@ def handle_function_run(f, task_id, func_pars):
 # schedules one task based on dict info
 # this is where the main shedule is mentioned
 def define_scheduler(task):
-    '''
-    structure for a task
-     let task = {
-            'module': selectedModule,
-            'function': selectedFunction, 
-            'set-time': setTime,
-            'set-type': setType...min and sec
-        };
-    '''
     task_module = imported_modules[task['module']]
 
     # grabbing the function reference
